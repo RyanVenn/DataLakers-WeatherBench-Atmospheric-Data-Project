@@ -50,8 +50,6 @@ def get_avg_wind_for_year(city, year):
     return float(row["wind_speed_mean_ms"].iloc[0])
 
 
-
-
 # calculates outliers for a given array
 def get_outliers(values):
     arr = np.array(values, dtype=float)
@@ -90,6 +88,41 @@ def remove_outliers(df):
 
     return df[keep_mask].copy()
 
+
+def remove_outliers_and_save():
+    df = pd.read_csv(DATASET)
+
+    if city is not None and city != "all":
+        city_df = df[df["city"] == city].copy()
+        cleaned_df = remove_outliers(city_df)
+
+        cleaned_df = cleaned_df.drop(columns=["city"])
+        formatted = city.lower().replace(" ", "_")
+        output_path = f"merged_{formatted}_yearly_1990_2018_clean.csv"
+
+        print(f"\nSaved cleaned dataset to: {output_path}")
+        print(f"Rows before: {len(city_df)}")
+        print(f"Rows after: {len(cleaned_df)}")
+
+    else:
+        cleaned_parts = []
+
+        for city_name in df["city"].dropna().unique():
+            city_df = df[df["city"] == city_name].copy()
+            cleaned_city_df = remove_outliers(city_df)
+            cleaned_parts.append(cleaned_city_df)
+
+        cleaned_df = pd.concat(cleaned_parts, ignore_index=True)
+
+        base, ext = os.path.splitext(DATASET)
+        output_path = f"{base}_clean{ext}"
+
+        print(f"\nSaved cleaned dataset to: {output_path}")
+        print(f"Rows before: {len(df)}")
+        print(f"Rows after: {len(cleaned_df)}")
+
+    cleaned_df.to_csv(output_path, index=False)
+    return cleaned_df
 
 
 def draw_avg_temp_boxplot(city, all):
@@ -162,42 +195,6 @@ if city is not None:
             draw_avg_temp_boxplot(cities[x], True)
     else:
         draw_avg_temp_boxplot(city, False)
-
-
-def remove_outliers_and_save():
-    df = pd.read_csv(DATASET)
-
-    if city is not None and city != "all":
-        city_df = df[df["city"] == city].copy()
-        cleaned_df = remove_outliers(city_df)
-
-        cleaned_df = cleaned_df.drop(columns=["city"])
-        formatted = city.lower().replace(" ", "_")
-        output_path = f"merged_{formatted}_yearly_1990_2018_clean.csv"
-
-        print(f"\nSaved cleaned dataset to: {output_path}")
-        print(f"Rows before: {len(city_df)}")
-        print(f"Rows after: {len(cleaned_df)}")
-
-    else:
-        cleaned_parts = []
-
-        for city_name in df["city"].dropna().unique():
-            city_df = df[df["city"] == city_name].copy()
-            cleaned_city_df = remove_outliers(city_df)
-            cleaned_parts.append(cleaned_city_df)
-
-        cleaned_df = pd.concat(cleaned_parts, ignore_index=True)
-
-        base, ext = os.path.splitext(DATASET)
-        output_path = f"{base}_clean{ext}"
-
-        print(f"\nSaved cleaned dataset to: {output_path}")
-        print(f"Rows before: {len(df)}")
-        print(f"Rows after: {len(cleaned_df)}")
-
-    cleaned_df.to_csv(output_path, index=False)
-    return cleaned_df
 
 # handles cleaning flag
 if clean:
