@@ -108,10 +108,10 @@ def remove_outliers_and_save():
 def draw_avg_temp_boxplot(city, all):
     df = pd.read_csv(DATASET)
 
-    # Filter once for the city
+    # filter for the city
     city_df = df[df["city"] == city]
 
-    # Extract columns directly as arrays (no loops needed)
+    # extract columns directly as arrays - not with loops like before
     temps = city_df["temp_mean_K"].dropna().values
     precips = city_df["precip_total_mm"].dropna().values
     winds = city_df["wind_speed_mean_ms"].dropna().values
