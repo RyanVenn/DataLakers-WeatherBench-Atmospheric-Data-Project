@@ -8,7 +8,7 @@ import argparse
 # python boxplot_outliers ...
 # --city [pick a city from the list or 'all' to do all cities]
 # --clean               
-# clean is optional, use to make the cleaned dataset
+# clean is optional, use to make the cleaned dataset (can be for specific city or all)
 
 
 DATASET = "./merged_all_locations_yearly_1990_2018.csv"
@@ -25,29 +25,6 @@ city = args.city
 clean = args.clean
 
 cities = ["Hyderabad", "Marseille", "Rome", "Kingston", "London", "Toronto", "Calgary", "Oslo", "Cape Town", "New York City"]
-
-
-# fetches metrics for given city and year
-def get_avg_temp_for_year(city, year):
-    df = pd.read_csv(DATASET)
-
-    row = df[(df["year"] == year) & (df["city"] == city)]
-
-    return float(row["temp_mean_K"].iloc[0])
-
-def get_avg_precip_for_year(city, year):
-    df = pd.read_csv(DATASET)
-
-    row = df[(df["year"] == year) & (df["city"] == city)]
-
-    return float(row["precip_total_mm"].iloc[0])
-
-def get_avg_wind_for_year(city, year):
-    df = pd.read_csv(DATASET)
-
-    row = df[(df["year"] == year) & (df["city"] == city)]
-
-    return float(row["wind_speed_mean_ms"].iloc[0])
 
 
 # calculates outliers for a given array
@@ -88,10 +65,12 @@ def remove_outliers(df):
 
     return df[keep_mask].copy()
 
-
+# removes outliers for particular dataset
 def remove_outliers_and_save():
     df = pd.read_csv(DATASET)
 
+
+    # given one city, a city-specific dataset is made
     if city is not None and city != "all":
         city_df = df[df["city"] == city].copy()
         cleaned_df = remove_outliers(city_df)
@@ -104,6 +83,7 @@ def remove_outliers_and_save():
         print(f"Rows before: {len(city_df)}")
         print(f"Rows after: {len(cleaned_df)}")
 
+    # when all or none is selected, do cleaning for all cities
     else:
         cleaned_parts = []
 
@@ -127,25 +107,14 @@ def remove_outliers_and_save():
 
 def draw_avg_temp_boxplot(city, all):
     df = pd.read_csv(DATASET)
-    
 
-    temps = []
-    precips = []
-    winds= []
+    # Filter once for the city
+    city_df = df[df["city"] == city]
 
-    min_year = df["year"].min()
-    max_year = df["year"].max()
-
-    # get temps, precipitations and winds for this city for every year
-    for current_year in range(min_year, max_year+1):
-        temps.append(get_avg_temp_for_year(city, current_year))
-        precips.append(get_avg_precip_for_year(city, current_year))
-        winds.append(get_avg_wind_for_year(city, current_year))
-
-    # filter out empty rows
-    temps = [x for x in temps if x is not None]
-    precips = [x for x in precips if x is not None]
-    winds = [x for x in winds if x is not None]
+    # Extract columns directly as arrays (no loops needed)
+    temps = city_df["temp_mean_K"].dropna().values
+    precips = city_df["precip_total_mm"].dropna().values
+    winds = city_df["wind_speed_mean_ms"].dropna().values
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
