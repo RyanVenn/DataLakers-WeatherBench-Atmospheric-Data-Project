@@ -1,8 +1,6 @@
 import argparse
 import pandas as pd
 import numpy as np
-from sklearn.neural_network import MLPRegressor
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error
 
 parser = argparse.ArgumentParser()
@@ -36,19 +34,10 @@ y_train = train[args.target].values
 X_test = test[training_columns].values
 y_test = test[args.target].values
 
-scaler = StandardScaler()
+model = GradientBoostingRegressor(random_state=42)
+model.fit(X_train, y_train)
 
-X_train_scaled = scaler.fit_transform(X_train)   # fit ONLY on train
-X_test_scaled = scaler.transform(X_test)         # use same scaler on test
-
-model = MLPRegressor(
-    hidden_layer_sizes=(64, 64),
-    max_iter=500,
-    random_state=42
-)
-
-model.fit(X_train_scaled, y_train)
-y_pred = model.predict(X_test_scaled)
-
+y_pred = model.predict(X_test)
 mae = mean_absolute_error(y_test, y_pred)
-print(f"Test MAE: {mae:.4f}")
+
+print(f"Test MAE for {args.target}: {mae:.4f}")
