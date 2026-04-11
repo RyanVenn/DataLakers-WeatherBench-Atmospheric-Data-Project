@@ -43,7 +43,7 @@ X_test_scaled = scaler.transform(X_test)         # use same scaler on test
 
 model = MLPRegressor(
     hidden_layer_sizes=(64, 64),
-    max_iter=5000,
+    max_iter=20000,
     random_state=42
 )
 
