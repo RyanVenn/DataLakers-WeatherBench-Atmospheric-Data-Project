@@ -30,7 +30,7 @@ The final dataset is built from our Weatherbench subset and UCDB. The following 
 - `nox_emissions_ton`: Total nitrogen oxides emissions (tons/year).
 - `pm25_emissions_ton`: Total PM2.5 (fine particulate matter) emissions (tons/year).
 - `temp_mean_K`
-- `precip_total_mm`
+- `precip_total_mm` 
 - `wind_speed_mean_ms`: The wind speed is a derived feature where $s = \sqrt{s_u^2 + s_v^2}$.
 
 The data from Weatherbench was hourly, whilst the data from UCDB was either annual or quinquennial (occurring every 5 years). Hence, we decided on preprocessing the data such that every column was annual:

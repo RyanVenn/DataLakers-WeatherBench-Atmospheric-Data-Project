@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 import argparse
 
 ##How to run: 
@@ -43,7 +44,7 @@ def get_outliers(values):
 
 # removes outliers based on city: i.e. removes what is considered outlier for given city, for all cities, rather than what is considered outlier across all cities 
 def remove_outliers(df):
-    columns = ["temp_mean_K", "precip_total_mm", "wind_speed_mean_ms"]
+    columns = ["temp_mean_K", "precip_total_mm", "wind_speed_mean_ms", "population", "built_up_area_m2", "gdp_ppp", "hdi", "pop_exposed_flood_10yr", "co2_emissions_ton", "ghg_emissions_ton", "nox_emissions_ton", "pm25_emissions_ton"]
     keep_mask = pd.Series(True, index=df.index)
 
     for column in columns:
@@ -111,50 +112,60 @@ def draw_avg_temp_boxplot(city, all):
     # filter for the city
     city_df = df[df["city"] == city]
 
-    # extract columns directly as arrays - not with loops like before
-    temps = city_df["temp_mean_K"].dropna().values
-    precips = city_df["precip_total_mm"].dropna().values
-    winds = city_df["wind_speed_mean_ms"].dropna().values
+    features = {
+        "Temperature (K)": city_df["temp_mean_K"].dropna().values,
+        "Precipitation (mm)": city_df["precip_total_mm"].dropna().values,
+        "Wind Speed (m/s)": city_df["wind_speed_mean_ms"].dropna().values,
+        "Population": city_df["population"].dropna().values,
+        "HDI": city_df["hdi"].dropna().values,
+        "Built-up Area (m²)": city_df["built_up_area_m2"].dropna().values,
+        "GDP PPP": city_df["gdp_ppp"].dropna().values,
+        "Flood Exposed Population": city_df["pop_exposed_flood_10yr"].dropna().values,
+        "CO2 Emissions (ton)": city_df["co2_emissions_ton"].dropna().values,
+        "GHG Emissions (ton)": city_df["ghg_emissions_ton"].dropna().values,
+        "NOx Emissions (ton)": city_df["nox_emissions_ton"].dropna().values,
+        "PM2.5 Emissions (ton)": city_df["pm25_emissions_ton"].dropna().values,
+    }
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    # compute outliers for all features
+    all_outliers = {}
+    for name, values in features.items():
+        all_outliers[name] = get_outliers(values)
 
-    # Temperature plot
-    axes[0].boxplot(temps)
-    axes[0].set_title("Temperature (K)")
-    axes[0].set_xlabel("")
-    axes[0].grid(True)
+    print(f"Outliers for {city}:")
+    for feature, outliers in all_outliers.items():
+        print(f"  {feature}: {outliers}")
 
-    # Precipitation plot
-    axes[1].boxplot(precips)
-    axes[1].set_title("Precipitation (mm)")
-    axes[1].set_xlabel("")
-    axes[1].grid(True)
+    # only keep non-empty arrays for plotting
+    plot_features = {name: values for name, values in features.items() if len(values) > 0}
 
-    # Wind plot
-    axes[2].boxplot(winds)
-    axes[2].set_title("Wind Speed (m/s)")
-    axes[2].set_xlabel("")
-    axes[2].grid(True)
+    n_features = len(plot_features)
+    n_cols = 3
+    n_rows = math.ceil(n_features / n_cols)
 
-    # get rid of the value 1 on x-axis
-    axes[0].set_xticklabels([])
-    axes[1].set_xticklabels([])
-    axes[2].set_xticklabels([])
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(22, 7 * n_rows))
+    axes = axes.flatten()
 
-    # output outliers in easy to read format all in one place
-    temp_outliers = get_outliers(temps)
-    precip_outliers = get_outliers(precips)
-    wind_outliers = get_outliers(winds)
-    print("Outliers for,", city ,"temp:", temp_outliers, "precip:", precip_outliers, "wind:", wind_outliers)
+    fig.subplots_adjust(wspace=0.4)
 
-    # formatting and png save
-    fig.suptitle(f"Weather Distribution for {city}")
-    plt.tight_layout()
-    plt.savefig("boxplot "+city+".png", dpi=300, bbox_inches="tight")
+    for i, (name, values) in enumerate(plot_features.items()):
+        axes[i].boxplot(values)
+        axes[i].set_title(name, fontsize=18)
+        axes[i].tick_params(axis='y', labelsize=16)
+        axes[i].set_xticklabels([])
+        axes[i].grid(True)
 
-    # stops the plots appearing when all is selected 
+    # hide unused subplots
+    for j in range(i + 1, len(axes)):
+        axes[j].axis("off")
+
+
+    plt.savefig(f"boxplot_{city}.png", dpi=300, bbox_inches="tight")
+
     if not all:
         plt.show()
+    else:
+        plt.close()
 
 
 # handles all cities being selected vs one
