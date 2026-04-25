@@ -11,11 +11,13 @@ YEARS = list(range(1990, 2019))  # 1990-2018.
 
 # Mapping from location code to (city_name, country) for UCDB matching.
 WEATHER_TO_CITY = {
-    "-33.5N_151E": ("Maroota", "Australia"),
+    # UCDB's station was in Syndey, and whilst Maroota is very close they still have different climates due to different elevation 
+    # and Maroota being rural. Hence, we exclude it for now with the possibility of including it later.
+    # "-33.5N_151E": ("Maroota", "Australia"),
     "-33.9N_18.5E": ("Cape Town", "South Africa"),
     "17.36N_78.5E": ("Hyderabad", "India"),
     "18N_283.2E": ("Kingston", "Jamaica"),
-    "40.75N_286.01E": ("New York", "United States of America"),
+    "40.75N_286.01E": ("New York City", "United States"),
     "41.9N_12.46E": ("Rome", "Italy"),
     "43.28N_5.39E": ("Marseille", "France"),
     "43.64N_280.63E": ("Toronto", "Canada"),
